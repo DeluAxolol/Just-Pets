@@ -1,8 +1,11 @@
 package com.bretzelfresser;
 
+import com.bretzelfresser.jerboavariants.JerboaVariant;
 import com.bretzelfresser.registries.ModEntities;
 import com.bretzelfresser.registries.ModItems;
+import com.bretzelfresser.registries.ModJerboaVariants;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.registries.*;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -31,10 +34,6 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
-import net.neoforged.neoforge.registries.DeferredBlock;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredItem;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.lang.module.ResolutionException;
 
@@ -57,8 +56,11 @@ public class JustJerboa
     {
         ModItems.ITEMS.register(modEventBus);
         ModEntities.ENTITIES.register(modEventBus);
+        ModJerboaVariants.JERBOA_VARIANT_SERIALIZERS.register(modEventBus);
+        ModJerboaVariants.JERBOA_VARIANTS.register(modEventBus);
 
         modEventBus.register(this);
+        modEventBus.addListener(this::registerDataPackRegistries);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
@@ -71,5 +73,9 @@ public class JustJerboa
         if (event.getTabKey().equals(CreativeModeTabs.SPAWN_EGGS)){
             event.accept(ModItems.JERBOA_SPAWN_EGG);
         }
+    }
+
+    public void registerDataPackRegistries(DataPackRegistryEvent.NewRegistry event){
+        event.dataPackRegistry(ModJerboaVariants.JERBOA_VARIANT_REGISTRY_KEY, JerboaVariant.DIRECT_CODEC, JerboaVariant.DIRECT_CODEC);
     }
 }

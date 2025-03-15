@@ -22,9 +22,11 @@ public class ModDataGenerator {
         gen.addProvider(event.includeServer(), new ModRecipeProvider(output));
         ModBlockTags blockTags = gen.addProvider(event.includeServer(), new ModBlockTags(output, lookup, helper));
         gen.addProvider(event.includeServer(), new ModItemTagsProvider(output, lookup, blockTags.contentsGetter()));
+        gen.addProvider(event.includeServer(), new ModJerboaVariantProvider(output, lookup, helper));
 
 
         gen.addProvider(event.includeClient(), new ModEnglishLanguageProvider(output));
+        gen.addProvider(event.includeClient(), new ModItemModels(output, helper));
 
 
     }

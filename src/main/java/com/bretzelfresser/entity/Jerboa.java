@@ -1,7 +1,8 @@
 package com.bretzelfresser.entity;
 
-import com.bretzelfresser.JustJerboa;
+import com.bretzelfresser.jerboavariants.JerboaVariant;
 import com.bretzelfresser.registries.ModEntities;
+import com.bretzelfresser.registries.ModJerboaVariants;
 import com.bretzelfresser.registries.ModTags;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -9,60 +10,72 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.AgeableMob;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.util.random.WeightedRandom;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.PanicGoal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Jerboa extends Animal {
+import java.util.Objects;
 
-    public static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(Jerboa.class, EntityDataSerializers.INT);
+public class Jerboa extends TamableAnimal implements VariantHolder<JerboaVariant> {
 
-    public static AttributeSupplier.Builder createAttributes(){
+    public static final EntityDataAccessor<String> VARIANT = SynchedEntityData.defineId(Jerboa.class, EntityDataSerializers.STRING);
+
+    public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 6f);
     }
 
-    public Jerboa(EntityType<? extends Animal> entityType, Level level) {
+    public Jerboa(EntityType<? extends TamableAnimal> entityType, Level level) {
         super(entityType, level);
+        this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F);
     }
 
 
     @Override
+    protected void registerGoals() {
+        this.goalSelector.addGoal(1, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new PanicGoal(this, 1.5D));
+    }
+
+    @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(VARIANT, getInitialVariant().ordinal());
+        this.entityData.define(VARIANT, level().registryAccess().registryOrThrow(ModJerboaVariants.JERBOA_VARIANT_REGISTRY_KEY).getKey(getInitialVariant()).toString());
     }
 
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
-        compound.putInt("variant", getVariant().ordinal());
+        compound.putString("variant", this.entityData.get(VARIANT));
     }
 
     @Override
     public void load(CompoundTag compound) {
         super.load(compound);
         if (compound.contains("variant")) {
-            this.entityData.set(VARIANT, compound.getInt("variant"));
+            this.entityData.set(VARIANT, compound.getString("variant"));
         }
     }
 
-    public void setVariant(Variant variant) {
-        this.entityData.set(VARIANT, variant.ordinal());
+    @Override
+    public void setVariant(JerboaVariant variant) {
+        this.entityData.set(VARIANT, level().registryAccess().registryOrThrow(ModJerboaVariants.JERBOA_VARIANT_REGISTRY_KEY).getKey(variant).toString());
     }
 
-    protected Variant getInitialVariant() {
-        return Variant.values()[this.level().random.nextInt(Variant.values().length)];
+    protected JerboaVariant getInitialVariant() {
+        return WeightedRandom.getRandomItem(this.level().getRandom(), this.level().registryAccess().registryOrThrow(ModJerboaVariants.JERBOA_VARIANT_REGISTRY_KEY).stream().filter(JerboaVariant::isCanSpawnNaturally).toList()).orElseThrow();
     }
 
-    public Variant getVariant() {
-        return Variant.values()[Mth.clamp(this.entityData.get(VARIANT), 0, Variant.values().length - 1)];
+    @Override
+    public @NotNull JerboaVariant getVariant() {
+        return Objects.requireNonNull(this.level().registryAccess().registryOrThrow(ModJerboaVariants.JERBOA_VARIANT_REGISTRY_KEY).get(new ResourceLocation(this.entityData.get(VARIANT))));
     }
 
     @Override
@@ -72,25 +85,18 @@ public class Jerboa extends Animal {
 
     @Override
     public @Nullable AgeableMob getBreedOffspring(ServerLevel serverLevel, AgeableMob ageableMob) {
-        return ModEntities.JERBOA.get().create(serverLevel);
-    }
-
-
-    public enum Variant {
-        VARIANT1(JustJerboa.modLoc("textures/entity/jerboa1.png")),
-        VARIANT2(JustJerboa.modLoc("textures/entity/jerboa2.png")),
-        VARIANT3(JustJerboa.modLoc("textures/entity/jerboa3.png")),
-        VARIANT4(JustJerboa.modLoc("textures/entity/jerboa4.png")),
-        VARIANT5(JustJerboa.modLoc("textures/entity/jerboa5.png"));
-
-        private ResourceLocation texture;
-
-        Variant(ResourceLocation texture) {
-            this.texture = texture;
+        if (ageableMob instanceof Jerboa otherParent) {
+            Jerboa entity = ModEntities.JERBOA.get().create(serverLevel);
+            if (this == ageableMob){
+                assert entity != null;
+                entity.setVariant(this.getVariant());
+                return entity;
+            }
+            JerboaVariant childVariant = WeightedRandom.getRandomItem(serverLevel.getRandom(), serverLevel.registryAccess().registryOrThrow(ModJerboaVariants.JERBOA_VARIANT_REGISTRY_KEY).stream().filter(s -> s.isValidCombination(serverLevel.registryAccess(), this.getVariant(), otherParent.getVariant())).toList()).orElseThrow();
+            assert entity != null;
+            entity.setVariant(childVariant);
+            return entity;
         }
-
-        public ResourceLocation getTextureLocation() {
-            return texture;
-        }
+        return null;
     }
 }
