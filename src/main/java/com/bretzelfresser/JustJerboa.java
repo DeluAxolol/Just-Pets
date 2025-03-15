@@ -68,5 +68,8 @@ public class JustJerboa
         if (event.getTabKey().equals(CreativeModeTabs.INGREDIENTS)){
             event.accept(ModItems.DRIED_GRASS_SEEDS);
         }
+        if (event.getTabKey().equals(CreativeModeTabs.SPAWN_EGGS)){
+            event.accept(ModItems.JERBOA_SPAWN_EGG);
+        }
     }
 }

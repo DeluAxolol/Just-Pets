@@ -14,6 +14,6 @@ public class JerboaRenderer extends MobRenderer<Jerboa, JerboaModel> {
 
     @Override
     public ResourceLocation getTextureLocation(Jerboa jerboa) {
-        return null;
+        return jerboa.getVariant().getTextureLocation();
     }
 }
