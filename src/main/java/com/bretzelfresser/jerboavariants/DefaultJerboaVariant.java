@@ -1,5 +1,6 @@
 package com.bretzelfresser.jerboavariants;
 
+import com.bretzelfresser.JustJerboa;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -18,19 +19,24 @@ public class DefaultJerboaVariant implements JerboaVariant {
             Codec.INT.fieldOf("weight").forGetter(DefaultJerboaVariant::getDefaultWeight),
             Codec.BOOL.fieldOf("canSpawnNaturally").forGetter(DefaultJerboaVariant::isCanSpawnNaturally),
             ResourceLocation.CODEC.fieldOf("texture").forGetter(DefaultJerboaVariant::getTexture),
+            ResourceLocation.CODEC.fieldOf("baby_texture").orElse(JustJerboa.modLoc("textures/entity/baby_jerboa_default.png")).forGetter(DefaultJerboaVariant::getBabyTexture),
             Codec.list(PAIR_CODEC).fieldOf("parentCombinations").forGetter(jv -> jv.parentCombinations)
     ).apply(instance, DefaultJerboaVariant::new));
 
     protected final int weight;
     protected final boolean canSpawnNaturally;
-    protected final ResourceLocation texture;
+    protected final ResourceLocation texture, babyTexture;
     protected final List<Pair<JerboaVariantChecker, JerboaVariantChecker>> parentCombinations;
 
-
     public DefaultJerboaVariant(int weight, boolean canSpawnNaturally, ResourceLocation texture, List<Pair<JerboaVariantChecker, JerboaVariantChecker>> parentCombinations) {
+        this(weight, canSpawnNaturally, texture, JustJerboa.modLoc("textures/entity/baby_jerboa_default.png"), parentCombinations);
+    }
+
+    public DefaultJerboaVariant(int weight, boolean canSpawnNaturally, ResourceLocation texture, ResourceLocation babyTexture, List<Pair<JerboaVariantChecker, JerboaVariantChecker>> parentCombinations) {
         this.weight = weight;
         this.canSpawnNaturally = canSpawnNaturally;
         this.texture = texture;
+        this.babyTexture = babyTexture;
         this.parentCombinations = parentCombinations;
     }
 
@@ -54,6 +60,12 @@ public class DefaultJerboaVariant implements JerboaVariant {
             }
         }
         return false;
+    }
+
+
+    @Override
+    public ResourceLocation getBabyTexture() {
+        return babyTexture;
     }
 
     @Override

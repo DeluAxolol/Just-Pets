@@ -46,6 +46,12 @@ public interface JerboaVariant extends WeightedEntry {
     ResourceLocation getTexture();
 
     /**
+     *
+     * @return the texture fitting for the baby texture
+     */
+    ResourceLocation getBabyTexture();
+
+    /**
      * @param access the registry access, ca be obtained from the level
      * @param parent1 the first parent
      * @param parent2 the secont parent, parents are interchangebale, so it doesnt matter in which order u put parent1 and parent2

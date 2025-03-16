@@ -1,5 +1,6 @@
 package com.bretzelfresser.entity;
 
+import com.bretzelfresser.Config;
 import com.bretzelfresser.jerboavariants.JerboaVariant;
 import com.bretzelfresser.registries.ModEntities;
 import com.bretzelfresser.registries.ModJerboaVariants;
@@ -11,20 +12,29 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.random.WeightedRandom;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.PanicGoal;
+import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.ShoulderRidingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.UUID;
 
-public class Jerboa extends TamableAnimal implements VariantHolder<JerboaVariant> {
+public class Jerboa extends ShoulderRidingEntity implements VariantHolder<JerboaVariant> {
 
     public static final EntityDataAccessor<String> VARIANT = SynchedEntityData.defineId(Jerboa.class, EntityDataSerializers.STRING);
 
@@ -32,7 +42,7 @@ public class Jerboa extends TamableAnimal implements VariantHolder<JerboaVariant
         return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 6f);
     }
 
-    public Jerboa(EntityType<? extends TamableAnimal> entityType, Level level) {
+    public Jerboa(EntityType<? extends ShoulderRidingEntity> entityType, Level level) {
         super(entityType, level);
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F);
     }
@@ -42,6 +52,10 @@ public class Jerboa extends TamableAnimal implements VariantHolder<JerboaVariant
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(1, new PanicGoal(this, 1.5D));
+        this.goalSelector.addGoal(2, new BreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(2, new LandOnOwnersShoulderGoal(this));
+
+        this.goalSelector.addGoal(8, new WaterAvoidingRandomStrollGoal(this, 0.7));
     }
 
     @Override
@@ -79,21 +93,88 @@ public class Jerboa extends TamableAnimal implements VariantHolder<JerboaVariant
     }
 
     @Override
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        ItemStack itemstack = player.getItemInHand(hand);
+        Item item = itemstack.getItem();
+        if (!this.isTame()) {
+            if (!isPanicking() && this.isFood(itemstack)) {
+                if (!player.getAbilities().instabuild) {
+                    itemstack.shrink(1);
+                }
+                if ((Config.jerboaTameChance <= 1 || this.random.nextInt(Config.jerboaTameChance) == 0) && !EventHooks.onAnimalTame(this, player)) {
+                    this.tame(player);
+                    this.navigation.stop();
+                    this.setTarget(null);
+                    this.setOrderedToSit(true);
+                    this.level().broadcastEntityEvent(this, (byte) 7);
+                } else {
+                    this.level().broadcastEntityEvent(this, (byte) 6);
+                }
+                return InteractionResult.SUCCESS;
+
+            }
+        }
+        if (this.isTame() && this.isOwnedBy(player) && canSitOnShoulder()) {
+            if (!this.level().isClientSide) {
+                this.setOrderedToSit(!this.isOrderedToSit());
+            }
+
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
+        }
+        return super.mobInteract(player, hand);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public ResourceLocation getTexture(){
+        return isBaby() ? getVariant().getBabyTexture() : getVariant().getTexture();
+    }
+
+    @Override
     public boolean isFood(ItemStack stack) {
         return stack.is(ModTags.Items.JERBOA_FOOD);
+    }
+
+    @Override
+    public boolean canMate(Animal otherAnimal) {
+        if (otherAnimal == this) {
+            return false;
+        } else if (!this.isTame()) {
+            return false;
+        } else if (!(otherAnimal instanceof Jerboa)) {
+            return false;
+        } else {
+            Jerboa jerboa = (Jerboa) otherAnimal;
+            if (!jerboa.isTame()) {
+                return false;
+            } else if (jerboa.isInSittingPose()) {
+                return false;
+            } else {
+                return this.isInLove() && jerboa.isInLove();
+            }
+        }
     }
 
     @Override
     public @Nullable AgeableMob getBreedOffspring(ServerLevel serverLevel, AgeableMob ageableMob) {
         if (ageableMob instanceof Jerboa otherParent) {
             Jerboa entity = ModEntities.JERBOA.get().create(serverLevel);
-            if (this == ageableMob){
+            if (this == ageableMob) {
                 assert entity != null;
+                UUID uuid = this.getOwnerUUID();
+                if (uuid != null) {
+                    entity.setOwnerUUID(uuid);
+                    entity.setTame(true);
+                }
                 entity.setVariant(this.getVariant());
                 return entity;
             }
             JerboaVariant childVariant = WeightedRandom.getRandomItem(serverLevel.getRandom(), serverLevel.registryAccess().registryOrThrow(ModJerboaVariants.JERBOA_VARIANT_REGISTRY_KEY).stream().filter(s -> s.isValidCombination(serverLevel.registryAccess(), this.getVariant(), otherParent.getVariant())).toList()).orElseThrow();
             assert entity != null;
+            UUID uuid = this.getOwnerUUID();
+            if (uuid != null) {
+                entity.setOwnerUUID(uuid);
+                entity.setTame(true);
+            }
             entity.setVariant(childVariant);
             return entity;
         }
