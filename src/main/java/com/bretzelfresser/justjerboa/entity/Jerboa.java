@@ -54,6 +54,7 @@ public class Jerboa extends ShoulderRidingEntity implements VariantHolder<Jerboa
         this.goalSelector.addGoal(1, new PanicGoal(this, 1.5D));
         this.goalSelector.addGoal(2, new BreedGoal(this, 1.0D));
         this.goalSelector.addGoal(2, new LandOnOwnersShoulderGoal(this));
+        this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.2D));
 
         this.goalSelector.addGoal(8, new WaterAvoidingRandomStrollGoal(this, 0.7));
     }
@@ -113,7 +114,7 @@ public class Jerboa extends ShoulderRidingEntity implements VariantHolder<Jerboa
 
             }
         }
-        if (this.isTame() && this.isOwnedBy(player)&& !isFood(itemstack) && canSitOnShoulder()) {
+        if (this.isTame() && this.isOwnedBy(player)&& !isBaby() && !isFood(itemstack) && canSitOnShoulder()) {
             if (!this.level().isClientSide) {
                 this.setOrderedToSit(!this.isOrderedToSit());
             }

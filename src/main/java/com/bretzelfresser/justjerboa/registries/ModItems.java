@@ -15,6 +15,6 @@ public class ModItems {
 
 
 
-    public static final RegistryObject<Item> DRIED_GRASS_SEEDS = ITEMS.register("dried_grass_seeds", () -> new Item(new Item.Properties().stacksTo(32)));
+    public static final RegistryObject<Item> DRIED_GRASS_SEEDS = ITEMS.register("dried_grass_seeds", () -> new Item(new Item.Properties()));
     public static final RegistryObject<ForgeSpawnEggItem> JERBOA_SPAWN_EGG = ITEMS.register("jerboa_spawn_egg", () -> new ForgeSpawnEggItem(ModEntities.JERBOA, 0xFFFFFF, 0, new Item.Properties()));
 }
