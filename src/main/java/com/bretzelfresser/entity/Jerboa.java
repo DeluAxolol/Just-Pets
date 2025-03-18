@@ -39,7 +39,8 @@ public class Jerboa extends ShoulderRidingEntity implements VariantHolder<Jerboa
     public static final EntityDataAccessor<String> VARIANT = SynchedEntityData.defineId(Jerboa.class, EntityDataSerializers.STRING);
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 6f);
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 6f)
+                .add(Attributes.MOVEMENT_SPEED, 0.4f);
     }
 
     public Jerboa(EntityType<? extends ShoulderRidingEntity> entityType, Level level) {
@@ -95,7 +96,6 @@ public class Jerboa extends ShoulderRidingEntity implements VariantHolder<Jerboa
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
-        Item item = itemstack.getItem();
         if (!this.isTame()) {
             if (!isPanicking() && this.isFood(itemstack)) {
                 if (!player.getAbilities().instabuild) {
@@ -114,7 +114,7 @@ public class Jerboa extends ShoulderRidingEntity implements VariantHolder<Jerboa
 
             }
         }
-        if (this.isTame() && this.isOwnedBy(player) && canSitOnShoulder()) {
+        if (this.isTame() && this.isOwnedBy(player)&& !isFood(itemstack) && canSitOnShoulder()) {
             if (!this.level().isClientSide) {
                 this.setOrderedToSit(!this.isOrderedToSit());
             }
