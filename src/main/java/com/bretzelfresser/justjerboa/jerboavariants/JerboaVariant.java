@@ -1,5 +1,6 @@
 package com.bretzelfresser.justjerboa.jerboavariants;
 
+import com.bretzelfresser.justjerboa.registries.ModJerboaVariantSerializers;
 import com.bretzelfresser.justjerboa.registries.ModJerboaVariants;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Holder;
@@ -18,7 +19,7 @@ import java.util.function.Function;
 public interface JerboaVariant extends WeightedEntry {
 
 
-    Codec<JerboaVariant> DIRECT_CODEC = ExtraCodecs.lazyInitializedCodec(() -> ModJerboaVariants.JERBOA_VARIANT_SERIALIZER_REGISTRY.get().getCodec()).dispatch(JerboaVariant::codec, Function.identity());
+    Codec<JerboaVariant> DIRECT_CODEC = ExtraCodecs.lazyInitializedCodec(() -> ModJerboaVariantSerializers.JERBOA_VARIANT_SERIALIZER_REGISTRY.get().getCodec()).dispatch(JerboaVariant::codec, Function.identity());
 
 
     Codec<Holder<JerboaVariant>> REFRENCE_CODEC = RegistryFileCodec.create(ModJerboaVariants.JERBOA_VARIANT_REGISTRY_KEY, DIRECT_CODEC);

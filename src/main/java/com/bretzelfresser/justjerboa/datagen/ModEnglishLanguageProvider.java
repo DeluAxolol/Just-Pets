@@ -13,6 +13,10 @@ public class ModEnglishLanguageProvider extends BetterLanguageProvider{
     @Override
     protected void addTranslations() {
         simpleItem(ModItems.DRIED_GRASS_SEEDS.get());
+        simpleItem(ModItems.JERBOA_SPAWN_EGG.get());
         simpleEntity(ModEntities.JERBOA.get());
+
+        add("advancements." + JustJerboa.MODID + ".pink_davancement.title", "Depths of Genetics");
+        add("advancements." + JustJerboa.MODID + ".pink_davancement.description", "You bred enough to finally find a hidden combination, Darwin would be really proud of you");
     }
 }

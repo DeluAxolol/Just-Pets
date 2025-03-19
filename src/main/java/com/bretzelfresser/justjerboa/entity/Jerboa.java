@@ -57,6 +57,7 @@ public class Jerboa extends ShoulderRidingEntity implements VariantHolder<Jerboa
         this.goalSelector.addGoal(3, new FollowParentGoal(this, 1.2D));
 
         this.goalSelector.addGoal(8, new WaterAvoidingRandomStrollGoal(this, 0.7));
+        this.goalSelector.addGoal(9, new RandomLookAroundGoal(this));
     }
 
     @Override
