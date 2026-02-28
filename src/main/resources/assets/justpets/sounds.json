@@ -1,0 +1,18 @@
+{
+	"jerboa_alarm": {
+		"sounds": [
+			{
+				"name": "justpets:jerboa_alarm",
+				"stream": true
+			}
+		]
+	},
+	"jerboa_idle": {
+		"sounds": [
+			"justpets:jerboa_idle1",
+			"justpets:jerboa_idle2",
+			"justpets:jerboa_idle3",
+			"justpets:jerboa_idle4"
+		]
+	}
+}
