@@ -1,0 +1,45 @@
+{
+  "parent": "minecraft:story/root",
+  "criteria": {
+    "breed_pink_jerboa": {
+      "conditions": {
+        "child": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type_specific": {
+                "variant": "justpets:pink_variant"
+              }
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:bred_animals"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.justpets.pink_davancement.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "justpets:dried_grass_seeds"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.justpets.pink_davancement.title"
+    }
+  },
+  "requirements": [
+    [
+      "breed_pink_jerboa"
+    ]
+  ],
+  "rewards": {
+    "experience": 100
+  },
+  "sends_telemetry_event": true
+}

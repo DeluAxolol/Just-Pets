@@ -4,7 +4,7 @@ import com.bretzelfresser.justpets.JustPets;
 import com.bretzelfresser.justpets.entity.Jerboa;
 import com.bretzelfresser.justpets.registries.ModEntities;
 
-import net.minecraft.tags.BlockTags;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
@@ -24,6 +24,6 @@ public class CommonSetupEvents {
     
     @SubscribeEvent
     public static void spawnPlacementRegister(SpawnPlacementRegisterEvent event) {
-    	event.register(ModEntities.JERBOA.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, (p_217081_, p_217082_, p_217083_, p_217084_, p_217085_) -> p_217082_.getBlockState(p_217084_.below()).is(BlockTags.SAND) && p_217082_.getRawBrightness(p_217084_, 0) > 8, Operation.AND);
+    	event.register(ModEntities.JERBOA.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Mob::checkMobSpawnRules, Operation.AND);
     }
 }

@@ -1,0 +1,8 @@
+{
+  "type": "justpets:default_jerboa_variant_serializer",
+  "baby_texture": "justpets:textures/entity/baby_grey.png",
+  "canSpawnNaturally": true,
+  "parentCombinations": [],
+  "texture": "justpets:textures/entity/grey.png",
+  "weight": 7
+}
