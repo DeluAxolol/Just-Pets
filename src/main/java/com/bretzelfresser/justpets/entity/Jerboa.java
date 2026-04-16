@@ -71,8 +71,11 @@ public class Jerboa extends ShoulderRidingEntity implements VariantHolder<Jerboa
     public final SmoothAnimationState flipAnimationState = new SmoothAnimationState();
     public final SmoothAnimationState backflipAnimationState = new SmoothAnimationState();
 
+    public final JerboaAlarm alarm;
+    
     public Jerboa(EntityType<? extends ShoulderRidingEntity> entityType, Level level) {
         super(entityType, level);
+        this.alarm = new JerboaAlarm(this, 400, 4);
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F);
     }
 
@@ -183,6 +186,7 @@ public class Jerboa extends ShoulderRidingEntity implements VariantHolder<Jerboa
         compound.putString("variant", this.entityData.get(VARIANT));
         compound.putInt("AnimationState", this.getAnimationState());
         compound.putInt("AnimationTick", this.getAnimationTick());
+    	this.alarm.write(compound);
     }
     
     @Override
@@ -191,6 +195,7 @@ public class Jerboa extends ShoulderRidingEntity implements VariantHolder<Jerboa
         this.entityData.set(VARIANT, compound.getString("variant"));
     	this.setAnimationState(compound.getInt("AnimationState"));
     	this.setAnimationTick(compound.getInt("AnimationTick"));
+    	this.alarm.read(compound);
     }
 
     @Override
