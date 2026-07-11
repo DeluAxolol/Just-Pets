@@ -47,7 +47,7 @@ public class JustPets {
         ModNetwork.registerMessages();
         modEventBus.register(this);
         modEventBus.addListener(this::registerDataPackRegistries);
-        modEventBus.addListener(ModEntityPredicateTypes::registerTypes);
+        ModEntityPredicateTypes.registerTypes();
 
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
